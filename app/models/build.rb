@@ -19,6 +19,12 @@ class Build
 
   def fail!(error = nil)
     build_status.fail!(seconds_since(@start), error)
+    remove_pid_file!
+  end
+
+  def remove_pid_file!
+    FileUtils.rm(artifact('build.pid'))
+  rescue Errno::ENOENT => e
   end
   
   def run
@@ -32,6 +38,7 @@ class Build
         execute self.command, :stdout => build_log, :stderr => build_log, :pid_file => build_pid
       end
       build_status.succeed!(seconds_since(@start))
+      remove_pid_file!
     rescue => e
       if File.exists?(project.local_checkout + "/trunk")
         msg = <<EOF
@@ -56,7 +63,7 @@ EOF
       end
     end
   end
-  
+
   def brief_error
     return error unless error.blank?
     return "plugin error" unless plugin_errors.empty?

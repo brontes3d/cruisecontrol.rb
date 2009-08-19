@@ -26,6 +26,7 @@ class BuildTest < Test::Unit::TestCase
       
       now += 10.seconds
       Time.stubs(:now).returns(now)
+      build.expects(:remove_pid_file!)
       build.fail!("I tripped")
       
       assert_equal true, build.failed?
@@ -149,6 +150,7 @@ class BuildTest < Test::Unit::TestCase
           :pid_file => expected_pid_file
         }
       build.expects(:execute).with(build.rake, expected_redirect_options).returns("hi, mom!")
+      build.expects(:remove_pid_file!)
 
       BuildStatus.any_instance.expects(:'succeed!').with(4)
       BuildStatus.any_instance.expects(:'fail!').never
@@ -191,7 +193,7 @@ class BuildTest < Test::Unit::TestCase
       build.run
     end
   end
-  
+
   def test_warn_on_mistake_check_out_if_trunk_dir_exists
     with_sandbox_project do |sandbox, project|
       sandbox.new :file => "work/trunk/rakefile"
