@@ -23,12 +23,13 @@ class Build
   
   def run
     build_log = artifact 'build.log'
+    build_pid = artifact 'build.pid'
     File.open(artifact('cruise_config.rb'), 'w') {|f| f << @project.config_file_content }
 
     begin
       raise ConfigError.new(@project.error_message) unless @project.config_valid?
       in_clean_environment_on_local_copy do
-        execute self.command, :stdout => build_log, :stderr => build_log
+        execute self.command, :stdout => build_log, :stderr => build_log, :pid_file => build_pid
       end
       build_status.succeed!(seconds_since(@start))
     rescue => e
@@ -98,7 +99,11 @@ EOF
   def output
     @output ||= contents_for_display(artifact('build.log'))
   end
-  
+
+  def pid
+    @pid ||= contents_for_display(artifact('build.pid')).strip.to_i
+  end
+
   def project_settings
     @project_settings ||= contents_for_display(artifact('cruise_config.rb'))
   end

@@ -72,6 +72,7 @@ class BuildTest < Test::Unit::TestCase
     end
   end
 
+
   def test_artifacts_directory_method_should_remove_cached_pages
     with_sandbox_project do |sandbox, project|
       build = Build.new(project, 2)
@@ -92,6 +93,20 @@ class BuildTest < Test::Unit::TestCase
     end
   end
   
+  def test_pid_returns_int_when_pid_file_exists
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-2-success.in9.235s/build.pid", :with_content => "16568"
+      build = Build.new(project, 2)
+      assert_equal 16568, build.pid
+    end
+  end
+
+  def test_pid_returns_zero_when_file_does_not_exist
+    with_sandbox_project do |sandbox,project|
+      assert_equal 0, Build.new(project, 1).pid
+    end
+  end
+
   def test_successful?
     with_sandbox_project do |sandbox, project|
       sandbox.new :directory => "build-1-success"
@@ -127,9 +142,11 @@ class BuildTest < Test::Unit::TestCase
   
       expected_command = build.rake
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
           :stdout => expected_build_log,
-          :stderr => expected_build_log
+          :stderr => expected_build_log,
+          :pid_file => expected_pid_file
         }
       build.expects(:execute).with(build.rake, expected_redirect_options).returns("hi, mom!")
 
@@ -161,9 +178,11 @@ class BuildTest < Test::Unit::TestCase
       build = Build.new(project, 123)
   
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
         :stdout => expected_build_log,
-        :stderr => expected_build_log
+        :stderr => expected_build_log,
+        :pid_file => expected_pid_file
       }
 
       error = RuntimeError.new("hello")
@@ -182,9 +201,11 @@ class BuildTest < Test::Unit::TestCase
       build = Build.new(project, 123)
 
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
         :stdout => expected_build_log,
-        :stderr => expected_build_log
+        :stderr => expected_build_log,
+        :pid_file => expected_pid_file
       }
   
       build.expects(:execute).with(build.rake, expected_redirect_options).raises(CommandLine::ExecutionError)
