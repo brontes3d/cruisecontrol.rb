@@ -64,6 +64,13 @@ EOF
     end
   end
 
+  # Sends SIGTERM signal to build's process if it exists
+  def terminate
+    if pid != 0 and build_status.incomplete? or build_status.never_built? 
+      Process.kill "SIGTERM", pid
+    end
+  end
+
   def brief_error
     return error unless error.blank?
     return "plugin error" unless plugin_errors.empty?

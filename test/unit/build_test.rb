@@ -108,6 +108,33 @@ class BuildTest < Test::Unit::TestCase
     end
   end
 
+  def test_terminate_should_kill_process_when_build_is_incomplete
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).with("SIGTERM", build.pid)
+      build.terminate
+    end
+  end
+
+  def test_terminate_should_not_kill_process_when_build_is_failed
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123-failed.in2s/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).never
+      build.terminate
+    end
+  end
+
+  def test_terminate_should_not_kill_process_when_build_is_failed
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123-success.in2s/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).never
+      build.terminate
+    end
+  end
+
   def test_successful?
     with_sandbox_project do |sandbox, project|
       sandbox.new :directory => "build-1-success"
