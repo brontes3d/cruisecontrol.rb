@@ -26,6 +26,7 @@ class BuildTest < ActiveSupport::TestCase
       
       now += 10.seconds
       Time.stubs(:now).returns(now)
+      build.expects(:remove_pid_file!)
       build.fail!("I tripped")
       
       assert_equal true, build.failed?
@@ -72,6 +73,7 @@ class BuildTest < ActiveSupport::TestCase
     end
   end
 
+
   def test_artifacts_directory_method_should_remove_cached_pages
     with_sandbox_project do |sandbox, project|
       build = Build.new(project, 2)
@@ -92,6 +94,47 @@ class BuildTest < ActiveSupport::TestCase
     end
   end
   
+  def test_pid_returns_int_when_pid_file_exists
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-2-success.in9.235s/build.pid", :with_content => "16568"
+      build = Build.new(project, 2)
+      assert_equal 16568, build.pid
+    end
+  end
+
+  def test_pid_returns_zero_when_file_does_not_exist
+    with_sandbox_project do |sandbox,project|
+      assert_equal 0, Build.new(project, 1).pid
+    end
+  end
+
+  def test_terminate_should_kill_process_when_build_is_incomplete
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).with("SIGTERM", build.pid)
+      build.terminate
+    end
+  end
+
+  def test_terminate_should_not_kill_process_when_build_is_failed
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123-failed.in2s/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).never
+      build.terminate
+    end
+  end
+
+  def test_terminate_should_not_kill_process_when_build_is_failed
+    with_sandbox_project do |sandbox, project|
+      sandbox.new :file => "build-123-success.in2s/build.pid", :with_content => "16568"
+      build = Build.new(project, 123)
+      Process.expects(:kill).never
+      build.terminate
+    end
+  end
+
   def test_successful?
     with_sandbox_project do |sandbox, project|
       sandbox.new :directory => "build-1-success"
@@ -127,11 +170,14 @@ class BuildTest < ActiveSupport::TestCase
   
       expected_command = build.rake
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
           :stdout => expected_build_log,
-          :stderr => expected_build_log
+          :stderr => expected_build_log,
+          :pid_file => expected_pid_file
         }
       build.expects(:execute).with(build.rake, expected_redirect_options).returns("hi, mom!")
+      build.expects(:remove_pid_file!)
 
       BuildStatus.any_instance.expects(:'succeed!').with(4)
       BuildStatus.any_instance.expects(:'fail!').never
@@ -161,9 +207,11 @@ class BuildTest < ActiveSupport::TestCase
       build = Build.new(project, 123)
   
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
         :stdout => expected_build_log,
-        :stderr => expected_build_log
+        :stderr => expected_build_log,
+        :pid_file => expected_pid_file
       }
 
       error = RuntimeError.new("hello")
@@ -172,7 +220,7 @@ class BuildTest < ActiveSupport::TestCase
       build.run
     end
   end
-  
+
   def test_warn_on_mistake_check_out_if_trunk_dir_exists
     with_sandbox_project do |sandbox, project|
       sandbox.new :file => "work/trunk/rakefile"
@@ -182,9 +230,11 @@ class BuildTest < ActiveSupport::TestCase
       build = Build.new(project, 123)
 
       expected_build_log = File.join(expected_build_directory, 'build.log')
+      expected_pid_file  = File.join(expected_build_directory, 'build.pid')
       expected_redirect_options = {
         :stdout => expected_build_log,
-        :stderr => expected_build_log
+        :stderr => expected_build_log,
+        :pid_file => expected_pid_file
       }
   
       build.expects(:execute).with(build.rake, expected_redirect_options).raises(CommandLine::ExecutionError)

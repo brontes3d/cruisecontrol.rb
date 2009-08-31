@@ -85,6 +85,7 @@ module CommandLine
         if proc
           proc.call(io)
         else
+          File.open(options[:pid_file], 'w') { |w| w.write(io.pid) } if options[:pid_file]
           io.each_line do |line|
             STDOUT.puts line if options[:stdout].nil?
           end
