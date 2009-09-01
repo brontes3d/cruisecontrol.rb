@@ -68,10 +68,11 @@
                 onclick="alert('Build Terminate button is disabled on this site.'); return false;"
               <% end -%>
               <% if project.builder_state_and_activity == 'building' %>
-                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button" value="txt" title="Cancel Build">Terminate
+                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button" value="txt" title="Cancel Build">
               <% else %>
-                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button_disabled" disabled="true" value="txt" title="Cancel Build">Not Building
+                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button_disabled" disabled="true" value="txt" title="Cancel Build">
               <% end %>
+              Terminate
             </button>
         </div>
       <% end %>
