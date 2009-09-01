@@ -56,6 +56,25 @@
           </button>
         </div>
       <% end %>
+      <% form_remote_tag(
+             :url => { :action => 'terminate', :id => project },
+             :before => "$('terminate_build_#{project.to_param}').disabled = true; " +
+                        "$('terminate_build_#{project.to_param}').className = 'build_button_disabled'; " +
+                        "Element.update('terminate_build_#{project.to_param}', 'Terminating...')"
+           ) do %>
+        <div>
+          <button 
+              <% if Configuration.disable_build_now -%>
+                onclick="alert('Build Terminate button is disabled on this site.'); return false;"
+              <% end -%>
+              <% if project.builder_state_and_activity == 'building' %>
+                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button" value="txt" title="Cancel Build">Terminate
+              <% else %>
+                id="terminate_build_<%= project.to_param %>" type="submit" class="build_button_disabled" disabled="true" value="txt" title="Cancel Build">Not Building
+              <% end %>
+            </button>
+        </div>
+      <% end %>
     </div>
     <%= display_builder_state(project.builder_state_and_activity) %>
   </td>

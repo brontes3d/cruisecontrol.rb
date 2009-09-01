@@ -39,6 +39,21 @@ class ProjectsController < ApplicationController
     respond_to { |format| format.js { render :action => 'index_js' } }
   end
   
+  def terminate
+    render :text => 'Build termination requests are not allowed', :status => 403 and return if Configuration.disable_build_now
+
+    @project = Project.find(params[:id])
+    render :text => "Project #{params[:id].inspect} not found", :status => 404 and return unless @project
+    
+    build = @project.last_build
+    render :text => "No active builds for project #{params[:id].inspect}", :status => 403 and return unless build
+
+    @project.last_build.terminate rescue nil
+    @projects = Project.all
+
+    respond_to { |format| format.js { render :action => 'index_js' } }
+  end
+  
   def code
     @project = Project.find(params[:id])
     render :text => "Project #{params[:id].inspect} not found", :status => 404 and return unless @project 
