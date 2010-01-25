@@ -54,6 +54,7 @@ class Test::Unit::TestCase
     project.stubs(:builds).returns(last_five_builds)
     project.stubs(:builder_error_message).returns('')
     project.stubs(:to_param).returns(name)
+    project.stubs(:path).returns('.')
     
     project.stubs(:last_complete_build).returns(nil)
     last_five_builds.reverse.each do |build|
@@ -66,6 +67,7 @@ class Test::Unit::TestCase
   def create_build_stub(label, status, time = Time.at(0))
     build = Object.new
     build.stubs(:label).returns(label)
+    build.stubs(:abbreviated_label).returns(label)
     build.stubs(:status).returns(status)
     build.stubs(:time).returns(time)
     build.stubs(:failed?).returns(status == 'failed')
@@ -73,7 +75,6 @@ class Test::Unit::TestCase
     build.stubs(:incomplete?).returns(status == 'incomplete')
     build.stubs(:changeset).returns("bobby checked something in")
     build.stubs(:brief_error).returns(nil)
-    
     build
   end
   

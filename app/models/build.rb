@@ -8,9 +8,15 @@ class Build
   attr_reader :project, :label
   IGNORE_ARTIFACTS = /^(\..*|build_status\..+|build.log|changeset.log|cruise_config.rb|plugin_errors.log)$/
 
-  def initialize(project, label)
+  def initialize(project, label, initialize_artifacts_directory=false)
     @project, @label = project, label.to_s
     @start = Time.now
+    if initialize_artifacts_directory
+      unless File.exist? artifacts_directory
+        FileUtils.mkdir_p artifacts_directory
+        clear_cache
+      end
+    end
   end
 
   def build_status
@@ -109,7 +115,7 @@ EOF
   def revision
     label.split(".")[0]
   end
-  
+
   def changeset
     @changeset ||= contents_for_display(artifact('changeset.log'))
   end
@@ -139,12 +145,7 @@ EOF
   end
 
   def artifacts_directory
-    @artifacts_directory = Dir["#{@project.path}/build-#{label}*"].sort.first || File.join(@project.path, "build-#{label}")
-    unless File.exist? @artifacts_directory
-      FileUtils.mkdir_p @artifacts_directory
-      clear_cache
-    end
-    @artifacts_directory
+    Dir["#{@project.path}/build-#{label}*"].sort.first || File.join(@project.path, "build-#{label}")
   end
   
   def clear_cache
@@ -226,6 +227,11 @@ EOF
 
   def seconds_since(start)
     (Time.now - start).ceil.abs
+  end
+
+  def abbreviated_label
+    revision, rebuild_number = label.split('.')
+    [revision[0..6], rebuild_number].compact.join('.')
   end
 
 end
