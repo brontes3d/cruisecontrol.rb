@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../test_helper')
 
 class BuildSerializerTest < Test::Unit::TestCase
   def setup
-    @project = Object.new
+    @project = create_project_stub("super_serial")
     @serializer = BuildSerializer.new(@project)
   end
   
