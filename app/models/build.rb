@@ -18,6 +18,10 @@ class Build
       end
     end
   end
+  
+  def has_test_results
+  	@project.test_report and File.exists?(File.join(@project.path, @project.test_report)) and !Dir[File.join(@project.path, @project.test_report, "*.xml")].empty?
+  end
 
   def build_status
     BuildStatus.new(artifacts_directory)

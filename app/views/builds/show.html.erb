@@ -57,6 +57,14 @@
   </div>
 
   <br/>
+  
+  <% if @project.test_report %>
+  	<% if @build.has_test_results %>
+  		<%= render :partial => 'test_results', :locals => {:project => project, :build => build} %>
+  	<% else %>
+  		<%= render :partial => 'no_test_results' %>
+  	<% end %>  
+  <% end %>
 
   <div class="section_open">
     <div class="section_header" onclick="toggle_section(this.parentNode)">Build Changeset</div>
