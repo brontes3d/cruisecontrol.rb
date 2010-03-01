@@ -1,0 +1,8 @@
+
+Add summary to build.show page
+
+Add test result history graph to project.index
+
+Add model for test results and provide routes for a subsection analyizing test results
+OR
+render partials in the project or build page
