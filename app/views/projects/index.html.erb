@@ -1,6 +1,6 @@
 <% @rss_feeds = { 'All projects' => {:controller => 'projects', :action => 'index', :format => 'rss'} } -%>
 <% @projects.each { |p| @rss_feeds["#{p.name} builds"] = project_url(:controller => 'projects', :action => 'show', :id => p, :format => 'rss')} -%>
-
+<span id="autorefresh_url" style="display: none"><%= url_for(:controller => "projects", :action => 'index', :format => 'js') %></span>
 <div id="projects">
   <% @projects.each do |project| -%>
     <%= render :partial => 'project', :locals => {:project => project }%>
@@ -8,8 +8,3 @@
 
   <%= render :partial => 'no_projects' if @projects.empty? %>
 </div>
-
-<%= 
-  periodically_call_remote :url => { :action => 'index', :format => 'js'}, :method => 'get',
-                                     :frequency => Configuration.dashboard_refresh_interval
-%>

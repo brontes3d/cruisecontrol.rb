@@ -6,7 +6,23 @@
     <span class="menu_item">
       <%= link_to 'Documentation', document_path %>
     </span>
+    <br/>
+    <span id="autorefresh" class="menu_item"></span>    
   </div>
+  <script type="text/javascript">
+    AutoRefresh.configure("autorefresh")
+    new PeriodicalExecuter(function() {
+      if(AutoRefresh.doRefresh() && $('autorefresh_url')) {
+        new Ajax.Request($('autorefresh_url').innerHTML, 
+          {
+            asynchronous:true, 
+            evalScripts:true, 
+            method:'get', 
+            parameters:'authenticity_token=' + encodeURIComponent(window._token)
+          })
+      }
+    }, <%= Configuration.dashboard_refresh_interval %>);
+  </script>
 
   <div class="cc_logo">
     <%= link_to image_tag("cruise_logo.png"), Configuration.default_page %>

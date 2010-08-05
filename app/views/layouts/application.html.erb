@@ -17,9 +17,13 @@
     <% end -%>
   <% end -%>
   <%= javascript_include_tag :defaults %>
+  <%= javascript_include_tag "cookies" %>
+  <%= javascript_include_tag "autorefresh" %>
 </head>
 
 <body>
+ <%= javascript_tag "window._token = '#{form_authenticity_token}'" %>
+ <%= javascript_tag "window._autorefresh = '#{@autorefresh}'" %>
 
   <%= render :partial => '/layouts/header' %>
 
